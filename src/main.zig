@@ -1,6 +1,8 @@
 const std = @import("std");
 const rl = @import("raylib");
 
+const Ball = struct { posX: i32, posY: i32, directX: i32, directY: i32, speed: i32, radius: i32 };
+
 pub fn main() anyerror!void {
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -8,15 +10,10 @@ pub fn main() anyerror!void {
     const screenHeight = 1080;
     const lowerBound: i32 = 0;
 
-    var ballPosX: i32 = 50;
-    var directionX: i32 = 1;
-    var ballPosY: i32 = 50;
-    var directionY: i32 = 1;
-    const speed: i32 = 2;
+    var ball: Ball = Ball{ .posX = 50, .posY = 50, .directX = 1, .directY = 1, .speed = 3, .radius = 50 };
 
     rl.initWindow(screenWidth, screenHeight, "Fractal-Maggot");
     rl.toggleFullscreen();
-
     defer rl.closeWindow(); // Close window and OpenGL context
 
     // Shader setup
@@ -36,14 +33,14 @@ pub fn main() anyerror!void {
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
         // Update
         //----------------------------------------------------------------------------------
-        if (((ballPosX - 50) < lowerBound) or ((ballPosX + 50) > screenWidth)) {
-            directionX = -directionX;
+        if (((ball.posX - ball.radius) < lowerBound) or ((ball.posX + ball.radius) > screenWidth)) {
+            ball.directX *= -1;
         }
-        if (((ballPosY - 50) < lowerBound) or ((ballPosY + 50) > screenHeight)) {
-            directionY = -directionY;
+        if (((ball.posY - ball.radius) < lowerBound) or ((ball.posY + ball.radius) > screenHeight)) {
+            ball.directY *= -1;
         }
-        ballPosX += directionX * speed;
-        ballPosY += directionY * speed;
+        ball.posX += ball.directX * ball.speed;
+        ball.posY += ball.directY * ball.speed;
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -65,7 +62,7 @@ pub fn main() anyerror!void {
                 rl.drawTextureEx(target.texture, rl.Vector2{ .x = 0.0, .y = 0.0 }, 0.0, 1.0, rl.Color.blank);
             }
 
-            rl.drawCircleGradient(ballPosX, ballPosY, 50.0, rl.Color.blue, rl.Color.sky_blue);
+            rl.drawCircleGradient(ball.posX, ball.posY, @floatFromInt(ball.radius), rl.Color.red, rl.Color.sky_blue);
         }
         //----------------------------------------------------------------------------------
     }
