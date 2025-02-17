@@ -1,21 +1,10 @@
 const rl = @import("raylib");
-
 const KeyboardKey = @import("raylib").KeyboardKey;
-
-const PointOfInterest = [6][2]f32{
-    [2]f32{ -0.348827, 0.607167 },
-    [2]f32{ -0.786268, 0.169728 },
-    [2]f32{ -0.8, 0.156 },
-    [2]f32{ 0.285, 0.0 },
-    [2]f32{ -0.835, -0.2321 },
-    [2]f32{ -0.70176, -0.3842 },
-};
 
 const ZoomSpeed: f32 = 1.01;
 const OffsetSpeedMul: f32 = 2.0;
 const StartingZoom: f32 = 0.3;
 
-var currentPoI: [2]f32 = PointOfInterest[2];
 var offSet: [2]f32 = [2]f32{ 0.0, 0.0 };
 var zoom = StartingZoom;
 
@@ -36,32 +25,8 @@ pub fn getLocations(shader: rl.Shader) void {
 
 // Upload the shader uniform values!
 pub fn setValues(shader: rl.Shader) void {
-    rl.setShaderValue(shader, currentPoILocation, &currentPoI, rl.ShaderUniformDataType.vec2);
     rl.setShaderValue(shader, zoomLocation, &zoom, rl.ShaderUniformDataType.float);
     rl.setShaderValue(shader, offSetLocation, &offSet, rl.ShaderUniformDataType.vec2);
-}
-
-// Press [1 - 6] to reset c to a point of interest
-pub fn updatePoI(shader: rl.Shader) void {
-    if (rl.isKeyPressed(KeyboardKey.one) or
-        rl.isKeyPressed(KeyboardKey.two) or
-        rl.isKeyPressed(KeyboardKey.three) or
-        rl.isKeyPressed(KeyboardKey.four) or
-        rl.isKeyPressed(KeyboardKey.five) or
-        rl.isKeyPressed(KeyboardKey.six))
-    {
-        switch (rl.getKeyPressed()) {
-            KeyboardKey.one => currentPoI = PointOfInterest[0],
-            KeyboardKey.two => currentPoI = PointOfInterest[1],
-            KeyboardKey.three => currentPoI = PointOfInterest[2],
-            KeyboardKey.four => currentPoI = PointOfInterest[3],
-            KeyboardKey.five => currentPoI = PointOfInterest[4],
-            KeyboardKey.six => currentPoI = PointOfInterest[5],
-            else => {},
-        }
-
-        rl.setShaderValue(shader, currentPoILocation, &currentPoI, rl.ShaderUniformDataType.vec2);
-    }
 }
 
 // If "R" is pressed, reset zoom and offset.
@@ -119,29 +84,16 @@ pub fn updateZoom(shader: rl.Shader, width: i32, height: i32) void {
     }
 }
 
-// Increment c value with time
-pub fn updateCurrentPoI(shader: rl.Shader) void {
-    const dc: f32 = rl.getFrameTime() * @as(f32, @floatFromInt(incrementSpeed)) * 0.0005;
-
-    currentPoI[0] += dc;
-    currentPoI[1] += dc;
-
-    rl.setShaderValue(shader, currentPoILocation, &currentPoI, rl.ShaderUniformDataType.vec2);
-}
-
 // Draw Controls
 pub fn drawControls() void {
     if (showControls) {
         rl.drawText("Press Mouse buttons right/left to zoom in/out and move", 10, 15, 10, rl.Color.ray_white);
         rl.drawText("Press KEY_F1 to toggle these controls", 10, 30, 10, rl.Color.ray_white);
-        rl.drawText("Press KEYS [1 - 6] to change point of interest", 10, 45, 10, rl.Color.ray_white);
-        rl.drawText("Press KEY_LEFT | KEY_RIGHT to change speed", 10, 60, 10, rl.Color.ray_white);
-        rl.drawText("Press KEY_SPACE to stop movement animation", 10, 75, 10, rl.Color.ray_white);
-        rl.drawText("Press KEY_R to recenter the camera", 10, 90, 10, rl.Color.ray_white);
+        rl.drawText("Press KEY_R to recenter the camera", 10, 45, 10, rl.Color.ray_white);
     }
 }
 
-// The Final Run for Julia
+// The Final Run for Mandelbrot Set
 pub fn run() anyerror!void {
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -153,7 +105,7 @@ pub fn run() anyerror!void {
     defer rl.closeWindow();
 
     // Shader setup
-    const fragementShader = "resources/julia_set.frag.glsl";
+    const fragementShader = "resources/mandelbrot_set.frag.glsl";
     const shader: rl.Shader = try rl.loadShader(null, fragementShader);
     defer rl.unloadShader(shader);
 
@@ -174,8 +126,6 @@ pub fn run() anyerror!void {
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
         // Update
         //----------------------------------------------------------------------------------
-        updateCurrentPoI(shader);
-
         updateResetZoomOffset(shader);
 
         updatePause();
@@ -185,8 +135,6 @@ pub fn run() anyerror!void {
         updateIncrementSpeed();
 
         updateZoom(shader, screenWidth, screenHeight);
-
-        updateCurrentPoI(shader);
         //----------------------------------------------------------------------------------
 
         // Draw
